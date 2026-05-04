@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html>
+<body>
+    <h2>Overlay Controller</h2>
+    <p>Select a color to spawn a new pane:</p>
+    <button onclick="spawn({ type: 'color', value: 'rgba(255, 0, 0, 0.5)' })">Spawn Red</button>
+    <button onclick="spawn({ type: 'color', value: 'rgba(0, 0, 255, 0.5)' })">Spawn Blue</button>
+    <button onclick="spawn({ type: 'color', value: 'rgba(0, 255, 0, 0.5)' })">Spawn Green</button>
+    <button onclick="spawn({ type: 'blur' })">Spawn Blur Mask</button>
+
+    <script>
+        const { ipcRenderer } = require('electron');
+        function spawn(config) {
+            ipcRenderer.send('create-pane', config);
+        }
+    </script>
+</body>
+</html>

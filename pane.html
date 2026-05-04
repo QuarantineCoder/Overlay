@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        html, body { 
+            background: transparent !important;
+            margin: 0;
+            padding: 0;
+            width: 100vw;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        body{
+            -webkit-app-region: drag; 
+        }
+
+        #box {
+            width: 100vw; 
+            height: 100vh;
+            box-sizing: border-box;
+        }
+        .blur-effect {
+            /* Tiny bit of white tint so the GPU sees the layer */
+            background: rgba(255, 255, 255, 0.2);
+            
+            /* This processes the pixels behind the window */
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+        }
+    </style>
+</head>
+<body>
+    <div id="box"></div>
+    <script>
+        const { ipcRenderer } = require('electron');
+        ipcRenderer.on('init-pane', (event, config) => {
+            const box = document.getElementById('box');
+            
+            if (config.type === 'color') {
+                box.style.backgroundColor = config.value;
+            } else if (config.type === 'blur') {
+                box.classList.add('blur-effect');
+                box.style.borderColor = 'rgba(255, 255, 255, 0.5)';
+            }
+        });
+    </script>
+</body>
+</html>
