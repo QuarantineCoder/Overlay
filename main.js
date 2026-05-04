@@ -13,24 +13,26 @@ function createMainWindow() {
     mainWindow.loadFile('index.html');
 }
 
+const MATERIAL_MAP = {
+    blur: 'acrylic',
+    color: 'none',
+};
+
 ipcMain.on('create-pane', (event, config) => {
     let pane = new BrowserWindow({
+    backgroundMaterial: MATERIAL_MAP[config.type] ?? 'none',
     width: 200,
     height: 200,
     frame: false,
     transparent: true,
     alwaysOnTop: true,
-    backgroundColor: '#00000000',
     webPreferences: {
         nodeIntegration: true,
         contextIsolation: false,
     }
 });
-
-    // We create a second HTML file just for the panes
     pane.loadFile('pane.html');
-
-    // Once the pane is ready, tell it what color to be
+    
     pane.webContents.on('did-finish-load', () => {
         pane.webContents.send('init-pane', config);
     });
