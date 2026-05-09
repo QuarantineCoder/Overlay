@@ -32,6 +32,7 @@ ipcMain.on('create-pane', (event, config) => {
     }
 });
     pane.loadFile('pane.html');
+    pane.setOpacity(Number(config.opacity));
     
     pane.webContents.on('did-finish-load', () => {
         pane.webContents.send('init-pane', config);
