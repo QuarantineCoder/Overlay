@@ -3,14 +3,38 @@
 <body>
     <h2>Overlay Controller</h2>
     <p>Select a color to spawn a new pane:</p>
-    <button onclick="spawn({ type: 'color', value: 'rgba(255, 0, 0, 1)' })">Spawn Red</button>
-    <button onclick="spawn({ type: 'color', value: 'rgba(0, 0, 255, 1)' })">Spawn Blue</button>
-    <button onclick="spawn({ type: 'color', value: 'rgba(0, 255, 0, 1)' })">Spawn Green</button>
-    <button onclick="spawn({ type: 'blur' })">Spawn Blur Mask</button>
+        <label><input type="radio" name="type" value="red" checked> Red</label>
+        <label><input type="radio" name="type" value="blue"> Blue</label>
+        <label><input type="radio" name="type" value="green"> Green</label>
+        <label><input type="radio" name="type" value="blur"> Blur</label>
+
+        <p>Layer</p>
+        <label><input type="radio" name="layer" value="top" checked> Above Everything</label>
+        <label><input type="radio" name="layer" value="desktop"> Above Desktop</label>
+
+        <button onclick="spawn()">Create Pane</button>
 
     <script>
         const { ipcRenderer } = require('electron');
-        function spawn(config) {
+        
+        const COLOUR_MAP = {
+            red:    'rgba(255, 0, 0, 0.5)',
+            blue:   'rgba(0, 0, 255, 0.5)',
+            green:  'rgba(0, 255, 0, 0.5)'
+        };
+        
+        function spawn() {
+            const selectedType = document.querySelector('input[name="type"]:checked').value;
+            const layer = document.querySelector('input[name="layer"]:checked').value;
+
+             let config;
+
+             if(selectedType === 'blur') {
+                config = { type: 'blur', layer };
+             } else {
+                config = { type: 'color', value: COLOUR_MAP[selectedType], layer };
+             }
+
             ipcRenderer.send('create-pane', config);
         }
     </script>
