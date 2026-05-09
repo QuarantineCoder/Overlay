@@ -7,3 +7,5 @@ Thumbs.db
 
 # Log files
 npm-debug.log*
+
+.claude/

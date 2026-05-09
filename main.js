@@ -25,7 +25,7 @@ ipcMain.on('create-pane', (event, config) => {
     height: 200,
     frame: false,
     transparent: true,
-    alwaysOnTop: true,
+    alwaysOnTop: config.layer === 'top',
     webPreferences: {
         nodeIntegration: true,
         contextIsolation: false,
@@ -36,6 +36,5 @@ ipcMain.on('create-pane', (event, config) => {
     pane.webContents.on('did-finish-load', () => {
         pane.webContents.send('init-pane', config);
     });
-    console.log("Spawn request received!", config);
 });
 app.whenReady().then(createMainWindow);
