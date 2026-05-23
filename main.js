@@ -21,8 +21,8 @@ const MATERIAL_MAP = {
 ipcMain.on('create-pane', (event, config) => {
     let pane = new BrowserWindow({
     backgroundMaterial: MATERIAL_MAP[config.type] ?? 'none',
-    width: 200,
-    height: 200,
+    width: config.width,
+    height: config.height,
     frame: false,
     transparent: true,
     alwaysOnTop: config.layer === 'top',

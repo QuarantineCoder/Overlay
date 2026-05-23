@@ -12,6 +12,10 @@
         <label><input type="radio" name="layer" value="top" checked> Above Everything</label>
         <label><input type="radio" name="layer" value="desktop"> Above Desktop</label>
 
+        <p>Pane Size</p>
+        <label>Width <input type="number" id="width" value="200" min="50"></label>
+        <label>Height <input type="number" id="height" value="200" min="50"></label>
+
         <p>Opacity</p>
         <input type="range" name="opacity" min="0.1" max="1" step="0.05" value="1">
 
@@ -20,14 +24,17 @@
             <div>
                 <button class="presetColor" id="presetColor-0" onclick="loadPreset(0)"></button>
                 <button onclick="savePreset(0)">Save</button>
+                <span id="presetLabel-0"></span>
             </div>                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           
             <div>
                 <button class="presetColor" id="presetColor-1" onclick="loadPreset(1)"></button>
                 <button onclick="savePreset(1)">Save</button>
+                <span id="presetLabel-1"></span>
             </div>
             <div>
                 <button class="presetColor" id="presetColor-2" onclick="loadPreset(2)"></button>
                 <button onclick="savePreset(2)">Save</button>
+                <span id="presetLabel-2"></span>
             </div>
         </div>
 
@@ -37,14 +44,25 @@
     <script>
         const { ipcRenderer } = require('electron');
         
+        for(let i = 0; i < 3; i++) {
+            const preset = JSON.parse(localStorage.getItem(`preset-${i}`));
+            if (preset) {
+                document.getElementById(`presetColor-${i}`).style.backgroundColor = preset.colour;
+                document.getElementById(`presetLabel-${i}`).textContent = `${preset.colour} | ${preset.width}x${preset.height} | opacity: ${preset.opacity} | ${preset.layer}`;
+        }
+}
+
         function savePreset(index) {
             const colour = document.getElementById('colorPicker').value;
             const opacity = document.querySelector('input[name="opacity"]').value;
             const layer = document.querySelector('input[name="layer"]:checked').value;
+            const width = Number(document.getElementById('width').value);
+            const height = Number(document.getElementById('height').value);
 
-            const preset = { colour, opacity, layer };
+            const preset = { colour, opacity, layer, width, height };
             localStorage.setItem(`preset-${index}`, JSON.stringify(preset));
             document.getElementById(`presetColor-${index}`).style.backgroundColor = colour;
+            document.getElementById(`presetLabel-${index}`).textContent = `${colour} | ${width}x${height} | opacity: ${opacity} | ${layer}`;
         }
 
         function loadPreset(index) {
@@ -54,6 +72,8 @@
                 document.querySelector('input[name="opacity"]').value = preset.opacity;
                 document.querySelector(`input[name="layer"][value="${preset.layer}"]`).checked = true;
                 document.querySelector('input[name="type"][value="color"]').checked = true;
+                document.getElementById('width').value = preset.width;
+                document.getElementById('height').value = preset.height;
             }
         } 
 
@@ -62,13 +82,15 @@
             const layer = document.querySelector('input[name="layer"]:checked').value;
             const opacity = document.querySelector('input[name="opacity"]').value;
             const colorHex = document.getElementById('colorPicker').value;
+            const width = Number(document.getElementById('width').value);
+            const height = Number(document.getElementById('height').value);
 
              let config;
 
              if(selectedType === 'blur') {
-                config = { type: 'blur', layer, opacity };
+                config = { type: 'blur', layer, opacity, width, height };
              } else {
-                config = { type: 'color', value: colorHex, layer, opacity };
+                config = { type: 'color', value: colorHex, layer, opacity, width, height };
              }
 
             ipcRenderer.send('create-pane', config);
