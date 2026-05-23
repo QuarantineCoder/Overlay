@@ -3,9 +3,9 @@
 <body>
     <h2>Overlay Controller</h2>
     <p>Select a color to spawn a new pane:</p>
-        <label><input type="radio" name="type" value="red" checked> Red</label>
-        <label><input type="radio" name="type" value="blue"> Blue</label>
-        <label><input type="radio" name="type" value="green"> Green</label>
+    
+        <label><input type="radio" name="type" value="color" checked> Color Picker</label>
+        <label><input type="color" name="type" id="colorPicker">Color</label>
         <label><input type="radio" name="type" value="blur"> Blur</label>
 
         <p>Layer</p>
@@ -15,31 +15,70 @@
         <p>Opacity</p>
         <input type="range" name="opacity" min="0.1" max="1" step="0.05" value="1">
 
+        <p>Presets</p>
+        <div id="presets">
+            <div>
+                <button class="presetColor" id="presetColor-0" onclick="loadPreset(0)"></button>
+                <button onclick="savePreset(0)">Save</button>
+            </div>                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           
+            <div>
+                <button class="presetColor" id="presetColor-1" onclick="loadPreset(1)"></button>
+                <button onclick="savePreset(1)">Save</button>
+            </div>
+            <div>
+                <button class="presetColor" id="presetColor-2" onclick="loadPreset(2)"></button>
+                <button onclick="savePreset(2)">Save</button>
+            </div>
+        </div>
+
+
         <button onclick="spawn()">Create Pane</button>
 
     <script>
         const { ipcRenderer } = require('electron');
         
-        const COLOUR_MAP = {
-            red:    'rgba(255, 0, 0)',
-            blue:   'rgba(0, 0, 255)',
-            green:  'rgba(0, 255, 0)'
-        };
-        
+        function savePreset(index) {
+            const colour = document.getElementById('colorPicker').value;
+            const opacity = document.querySelector('input[name="opacity"]').value;
+            const layer = document.querySelector('input[name="layer"]:checked').value;
+
+            const preset = { colour, opacity, layer };
+            localStorage.setItem(`preset-${index}`, JSON.stringify(preset));
+            document.getElementById(`presetColor-${index}`).style.backgroundColor = colour;
+        }
+
+        function loadPreset(index) {
+            const preset = JSON.parse(localStorage.getItem(`preset-${index}`));
+            if (preset) {
+                document.getElementById('colorPicker').value = preset.colour;
+                document.querySelector('input[name="opacity"]').value = preset.opacity;
+                document.querySelector(`input[name="layer"][value="${preset.layer}"]`).checked = true;
+                document.querySelector('input[name="type"][value="color"]').checked = true;
+            }
+        } 
+
         function spawn() {
             const selectedType = document.querySelector('input[name="type"]:checked').value;
             const layer = document.querySelector('input[name="layer"]:checked').value;
             const opacity = document.querySelector('input[name="opacity"]').value;
+            const colorHex = document.getElementById('colorPicker').value;
 
              let config;
 
              if(selectedType === 'blur') {
                 config = { type: 'blur', layer, opacity };
              } else {
-                config = { type: 'color', value: COLOUR_MAP[selectedType], layer, opacity };
+                config = { type: 'color', value: colorHex, layer, opacity };
              }
 
             ipcRenderer.send('create-pane', config);
+        }
+
+        for(let i = 0; i < 3; i++) {
+            const preset = JSON.parse(localStorage.getItem(`preset-${i}`));
+            if (preset) {
+                document.getElementById(`presetColor-${i}`).style.backgroundColor = preset.colour;
+            }
         }
     </script>
 </body>
