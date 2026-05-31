@@ -1,6 +1,8 @@
 # Overlay
 
-Ever run into the issue that you are sharing your screen in a meeting and need to cover sensitive information on your desktop? Overlay is a lightweight Windows desktop utility that lets you place transparent panes anywhere on your screen — without closing or minimising the app showing it.
+Ever run into the issue that you are sharing your screen in a meeting and need to cover sensitive information on your desktop? Overlay is the solution!
+
+Overlay is a lightweight Windows desktop utility app that lets you place different colour or translucent panes anywhere on your screen without closing or minimising the app showing it.
 
 ---
 
