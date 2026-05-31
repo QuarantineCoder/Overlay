@@ -21,17 +21,15 @@
             box-sizing: border-box;
         }
 
-        #closeBtn {
+        #closeBtn, #duplicateBtn {
             position: fixed;
             top: 6px;
-            right: 6px;
             width: 22px;
             height: 22px;
             background: rgba(0, 0, 0, 0.5);
             border: none;
             border-radius: 50%;
             color: #fff;
-            font-size: 15px;
             line-height: 1;
             cursor: pointer;
             /* Must opt out of drag so clicks register instead of dragging the window */
@@ -43,21 +41,29 @@
             justify-content: center;
         }
 
-        body:hover #closeBtn {
+        #closeBtn     { right: 6px;  font-size: 15px; }
+        #duplicateBtn { right: 33px; font-size: 12px; }
+
+        body:hover #closeBtn,
+        body:hover #duplicateBtn {
             opacity: 1;
         }
 
-        #closeBtn:hover {
-            background: rgba(180, 40, 40, 0.8);
-        }
+        #closeBtn:hover     { background: rgba(180, 40, 40, 0.8); }
+        #duplicateBtn:hover { background: rgba(99, 102, 241, 0.8); }
     </style>
 </head>
 <body>
     <div id="box"></div>
-    <button id="closeBtn" onclick="window.close()">×</button>
+    <button id="closeBtn" onclick="window.close()" title="Close">×</button>
+    <button id="duplicateBtn" title="Duplicate">⧉</button>
     <script>
         const { ipcRenderer } = require('electron');
+
+        let paneConfig = null; // remembered so right-click can send an exact copy
+
         ipcRenderer.on('init-pane', (event, config) => {
+            paneConfig = config;
             const box = document.getElementById('box');
             box.className = '';
             box.style.backgroundColor = 'transparent'; // Start clean
@@ -65,6 +71,10 @@
             if (config.type === 'color') {
                 box.style.backgroundColor = config.value;
             }
+        });
+
+        document.getElementById('duplicateBtn').addEventListener('click', () => {
+            if (paneConfig) ipcRenderer.send('duplicate-pane', paneConfig);
         });
     </script>
 </body>

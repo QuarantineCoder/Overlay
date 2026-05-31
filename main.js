@@ -52,4 +52,32 @@ ipcMain.on('create-pane', (event, config) => {
     });
 });
 
+// Duplicates a pane — offsets the new window by 20px and reads live size so resized panes copy correctly
+ipcMain.on('duplicate-pane', (event, config) => {
+    const origin = BrowserWindow.fromWebContents(event.sender);
+    const [x, y] = origin.getPosition();
+    const [currentWidth, currentHeight] = origin.getSize(); // actual size, not the original config value
+
+    let pane = new BrowserWindow({
+        backgroundMaterial: MATERIAL_MAP[config.type] ?? 'none',
+        width: currentWidth,
+        height: currentHeight,
+        x: x + 20,
+        y: y + 20,
+        frame: false,
+        transparent: true,
+        alwaysOnTop: config.layer === 'top',
+        webPreferences: {
+            nodeIntegration: true,
+            contextIsolation: false,
+        }
+    });
+    pane.loadFile('pane.html');
+    pane.setOpacity(Number(config.opacity));
+
+    pane.webContents.on('did-finish-load', () => {
+        pane.webContents.send('init-pane', config);
+    });
+});
+
 app.whenReady().then(createMainWindow);
