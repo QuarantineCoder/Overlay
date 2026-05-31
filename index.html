@@ -1,107 +1,237 @@
 <!DOCTYPE html>
 <html>
-<body>
-    <h2>Overlay Controller</h2>
-    <p>Select a color to spawn a new pane:</p>
-    
-        <label><input type="radio" name="type" value="color" checked> Color Picker</label>
-        <label><input type="color" name="type" id="colorPicker">Color</label>
-        <label><input type="radio" name="type" value="blur"> Blur</label>
+<head>
+    <meta charset="UTF-8">
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-900 text-gray-100 font-sans p-5 select-none overflow-y-auto">
 
-        <p>Layer</p>
-        <label><input type="radio" name="layer" value="top" checked> Above Everything</label>
-        <label><input type="radio" name="layer" value="desktop"> Above Desktop</label>
+    <div class="flex items-center gap-3 mb-6">
+        <span class="w-5 h-5 rounded-full bg-indigo-400"></span>
+        <h1 class="text-2xl font-bold tracking-tight">Overlay</h1>
+    </div>
 
-        <p>Pane Size</p>
-        <label>Width <input type="number" id="width" value="200" min="50"></label>
-        <label>Height <input type="number" id="height" value="200" min="50"></label>
-
-        <p>Opacity</p>
-        <input type="range" name="opacity" min="0.1" max="1" step="0.05" value="1">
-
-        <p>Presets</p>
-        <div id="presets">
-            <div>
-                <button class="presetColor" id="presetColor-0" onclick="loadPreset(0)"></button>
-                <button onclick="savePreset(0)">Save</button>
-                <span id="presetLabel-0"></span>
-            </div>                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           
-            <div>
-                <button class="presetColor" id="presetColor-1" onclick="loadPreset(1)"></button>
-                <button onclick="savePreset(1)">Save</button>
-                <span id="presetLabel-1"></span>
-            </div>
-            <div>
-                <button class="presetColor" id="presetColor-2" onclick="loadPreset(2)"></button>
-                <button onclick="savePreset(2)">Save</button>
-                <span id="presetLabel-2"></span>
-            </div>
+    <!-- Type -->
+    <div class="mb-4">
+        <span class="block text-xs font-semibold uppercase tracking-wider text-gray-500 mb-2">Type</span>
+        <div class="flex gap-2">
+            <button id="btn-type-color" onclick="setType('color')"
+                class="flex-1 py-2 text-sm font-medium rounded-lg border border-indigo-500 bg-indigo-600 text-white transition-all duration-150 cursor-pointer">
+                Color
+            </button>
+            <button id="btn-type-blur" onclick="setType('blur')"
+                class="flex-1 py-2 text-sm font-medium rounded-lg border border-gray-700 text-gray-400 hover:border-gray-600 hover:text-gray-200 transition-all duration-150 cursor-pointer">
+                Blur
+            </button>
         </div>
+    </div>
 
+    <!-- Color -->
+    <div id="colorRow" class="mb-4">
+        <span class="block text-xs font-semibold uppercase tracking-wider text-gray-500 mb-2">Color</span>
+        <div class="flex items-center gap-3">
+            <input type="color" id="colorPicker" value="#6366f1"
+                class="h-10 w-16 rounded-lg cursor-pointer border border-gray-700 bg-gray-800 p-1">
+            <span id="colorHex" class="text-sm text-gray-400 font-mono">#6366f1</span>
+        </div>
+    </div>
 
-        <button onclick="spawn()">Create Pane</button>
+    <!-- Layer -->
+    <div class="mb-4">
+        <span class="block text-xs font-semibold uppercase tracking-wider text-gray-500 mb-2">Layer</span>
+        <div class="flex gap-2">
+            <button id="btn-layer-top" onclick="setLayer('top')"
+                class="flex-1 py-2 text-sm font-medium rounded-lg border border-indigo-500 bg-indigo-600 text-white transition-all duration-150 cursor-pointer">
+                Above Everything
+            </button>
+            <button id="btn-layer-desktop" onclick="setLayer('desktop')"
+                class="flex-1 py-2 text-sm font-medium rounded-lg border border-gray-700 text-gray-400 hover:border-gray-600 hover:text-gray-200 transition-all duration-150 cursor-pointer">
+                Above Desktop
+            </button>
+        </div>
+    </div>
+
+    <!-- Size -->
+    <div class="mb-4">
+        <span class="block text-xs font-semibold uppercase tracking-wider text-gray-500 mb-2">Size</span>
+        <div class="flex gap-3">
+            <label class="flex-1">
+                <span class="text-xs text-gray-500 mb-1 block">Width</span>
+                <input type="number" id="width" value="200" min="50"
+                    class="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm text-gray-100 focus:outline-none focus:border-indigo-500 transition-colors">
+            </label>
+            <label class="flex-1">
+                <span class="text-xs text-gray-500 mb-1 block">Height</span>
+                <input type="number" id="height" value="200" min="50"
+                    class="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm text-gray-100 focus:outline-none focus:border-indigo-500 transition-colors">
+            </label>
+        </div>
+    </div>
+
+    <!-- Opacity -->
+    <div class="mb-5">
+        <div class="flex justify-between items-center mb-2">
+            <span class="text-xs font-semibold uppercase tracking-wider text-gray-500">Opacity</span>
+            <span id="opacityDisplay" class="text-xs text-indigo-400 font-mono">100%</span>
+        </div>
+        <input type="range" id="opacitySlider" min="0.1" max="1" step="0.05" value="1"
+            class="w-full accent-indigo-500 cursor-pointer"
+            oninput="updateOpacity(this.value)">
+    </div>
+
+    <!-- Presets -->
+    <div class="mb-5">
+        <span class="block text-xs font-semibold uppercase tracking-wider text-gray-500 mb-2">Presets</span>
+        <div class="grid grid-cols-3 gap-2">
+            <div id="preset-0"></div>
+            <div id="preset-1"></div>
+            <div id="preset-2"></div>
+        </div>
+    </div>
+
+    <!-- Create -->
+    <button onclick="spawn()"
+        class="w-full py-3 bg-indigo-600 hover:bg-indigo-500 active:scale-[0.98] rounded-xl font-semibold text-white text-sm transition-all duration-150 cursor-pointer">
+        Create Pane
+    </button>
 
     <script>
+        // ipcRenderer lets this page send messages to main.js (Electron inter-process communication)
         const { ipcRenderer } = require('electron');
-        
-        for(let i = 0; i < 3; i++) {
-            const preset = JSON.parse(localStorage.getItem(`preset-${i}`));
-            if (preset) {
-                document.getElementById(`presetColor-${i}`).style.backgroundColor = preset.colour;
-                document.getElementById(`presetLabel-${i}`).textContent = `${preset.colour} | ${preset.width}x${preset.height} | opacity: ${preset.opacity} | ${preset.layer}`;
-        }
-}
 
+        // Track currently selected options — used when spawning a pane or saving a preset
+        let selectedType = 'color';
+        let selectedLayer = 'top';
+
+        // Tailwind classes applied to toggle buttons depending on their active/inactive state
+        const activeClasses = ['bg-indigo-600', 'border-indigo-500', 'text-white'];
+        const inactiveClasses = ['border-gray-700', 'text-gray-400'];
+
+        function setActive(btn) {
+            btn.classList.add(...activeClasses);
+            btn.classList.remove(...inactiveClasses);
+        }
+        function setInactive(btn) {
+            btn.classList.remove(...activeClasses);
+            btn.classList.add(...inactiveClasses);
+        }
+
+        // Update the selected type, swap button styles, and show/hide the color picker row
+        function setType(type) {
+            selectedType = type;
+            setActive(document.getElementById('btn-type-color'));
+            setActive(document.getElementById('btn-type-blur'));
+            if (type === 'color') {
+                setActive(document.getElementById('btn-type-color'));
+                setInactive(document.getElementById('btn-type-blur'));
+            } else {
+                setActive(document.getElementById('btn-type-blur'));
+                setInactive(document.getElementById('btn-type-color'));
+            }
+            document.getElementById('colorRow').style.display = type === 'color' ? '' : 'none';
+        }
+
+        // Update the selected layer and swap button styles
+        function setLayer(layer) {
+            selectedLayer = layer;
+            if (layer === 'top') {
+                setActive(document.getElementById('btn-layer-top'));
+                setInactive(document.getElementById('btn-layer-desktop'));
+            } else {
+                setActive(document.getElementById('btn-layer-desktop'));
+                setInactive(document.getElementById('btn-layer-top'));
+            }
+        }
+
+        // Keep the percentage label in sync as the slider moves
+        function updateOpacity(val) {
+            document.getElementById('opacityDisplay').textContent = Math.round(val * 100) + '%';
+        }
+
+        // Mirror the hex value next to the color picker as the user picks a color
+        document.getElementById('colorPicker').addEventListener('input', e => {
+            document.getElementById('colorHex').textContent = e.target.value;
+        });
+
+        // Build all three preset cards from localStorage — called on load and after every save
+        function renderPresets() {
+            for (let i = 0; i < 3; i++) {
+                const container = document.getElementById(`preset-${i}`);
+                const preset = JSON.parse(localStorage.getItem(`preset-${i}`));
+                if (preset) {
+                    const isBlur = preset.type === 'blur';
+                    // Blur presets get a dark gradient swatch; color presets show their actual color
+                    const swatchStyle = isBlur
+                        ? 'background: linear-gradient(135deg, #1e293b 25%, #334155 50%, #1e293b 75%)'
+                        : `background:${preset.colour}`;
+                    const swatchLabel = isBlur
+                        ? `<div class="text-xs text-gray-400">Blur</div>`
+                        : `<div class="text-xs text-gray-400 font-mono truncate">${preset.colour}</div>`;
+                    container.innerHTML = `
+                        <div class="rounded-lg border border-gray-700 overflow-hidden">
+                            <div class="h-8 cursor-pointer hover:opacity-80 transition-opacity flex items-center justify-center"
+                                 style="${swatchStyle}"
+                                 onclick="loadPreset(${i})">
+                                ${isBlur ? '<span style="font-size:10px;color:#94a3b8;letter-spacing:0.05em">BLUR</span>' : ''}
+                            </div>
+                            <div class="bg-gray-800 px-2 pt-1 pb-0.5 flex justify-between items-start">
+                                <div>
+                                    ${swatchLabel}
+                                    <div class="text-xs text-gray-500">${preset.width}×${preset.height}</div>
+                                </div>
+                                <button onclick="savePreset(${i})" class="text-xs text-gray-500 hover:text-indigo-400 transition-colors ml-1 mt-0.5" title="Overwrite">↑</button>
+                            </div>
+                        </div>`;
+                } else {
+                    container.innerHTML = `
+                        <div class="rounded-lg border border-dashed border-gray-700 overflow-hidden">
+                            <div class="h-8 bg-gray-800/50"></div>
+                            <div class="bg-gray-800/30 px-2 py-1 flex justify-between items-center">
+                                <span class="text-xs text-gray-600">empty</span>
+                                <button onclick="savePreset(${i})" class="text-xs text-gray-500 hover:text-indigo-400 transition-colors" title="Save">↑</button>
+                            </div>
+                        </div>`;
+                }
+            }
+        }
+
+        // Snapshot the current settings into a preset slot and re-render the cards
         function savePreset(index) {
             const colour = document.getElementById('colorPicker').value;
-            const opacity = document.querySelector('input[name="opacity"]').value;
-            const layer = document.querySelector('input[name="layer"]:checked').value;
+            const opacity = document.getElementById('opacitySlider').value;
             const width = Number(document.getElementById('width').value);
             const height = Number(document.getElementById('height').value);
-
-            const preset = { colour, opacity, layer, width, height };
-            localStorage.setItem(`preset-${index}`, JSON.stringify(preset));
-            document.getElementById(`presetColor-${index}`).style.backgroundColor = colour;
-            document.getElementById(`presetLabel-${index}`).textContent = `${colour} | ${width}x${height} | opacity: ${opacity} | ${layer}`;
+            localStorage.setItem(`preset-${index}`, JSON.stringify({ colour, opacity, layer: selectedLayer, width, height, type: selectedType }));
+            renderPresets();
         }
 
+        // Restore all controls to match a saved preset
         function loadPreset(index) {
             const preset = JSON.parse(localStorage.getItem(`preset-${index}`));
-            if (preset) {
-                document.getElementById('colorPicker').value = preset.colour;
-                document.querySelector('input[name="opacity"]').value = preset.opacity;
-                document.querySelector(`input[name="layer"][value="${preset.layer}"]`).checked = true;
-                document.querySelector('input[name="type"][value="color"]').checked = true;
-                document.getElementById('width').value = preset.width;
-                document.getElementById('height').value = preset.height;
-            }
-        } 
+            if (!preset) return;
+            document.getElementById('colorPicker').value = preset.colour;
+            document.getElementById('colorHex').textContent = preset.colour;
+            document.getElementById('opacitySlider').value = preset.opacity;
+            document.getElementById('width').value = preset.width;
+            document.getElementById('height').value = preset.height;
+            updateOpacity(preset.opacity);
+            setLayer(preset.layer);
+            // Fall back to 'color' for any presets saved before type tracking was added
+            setType(preset.type ?? 'color');
+        }
 
+        // Read all current settings, build the config, and tell main.js to open a new pane window
         function spawn() {
-            const selectedType = document.querySelector('input[name="type"]:checked').value;
-            const layer = document.querySelector('input[name="layer"]:checked').value;
-            const opacity = document.querySelector('input[name="opacity"]').value;
-            const colorHex = document.getElementById('colorPicker').value;
+            const opacity = document.getElementById('opacitySlider').value;
             const width = Number(document.getElementById('width').value);
             const height = Number(document.getElementById('height').value);
-
-             let config;
-
-             if(selectedType === 'blur') {
-                config = { type: 'blur', layer, opacity, width, height };
-             } else {
-                config = { type: 'color', value: colorHex, layer, opacity, width, height };
-             }
-
+            const config = selectedType === 'blur'
+                ? { type: 'blur', layer: selectedLayer, opacity, width, height }
+                : { type: 'color', value: document.getElementById('colorPicker').value, layer: selectedLayer, opacity, width, height };
             ipcRenderer.send('create-pane', config);
         }
 
-        for(let i = 0; i < 3; i++) {
-            const preset = JSON.parse(localStorage.getItem(`preset-${i}`));
-            if (preset) {
-                document.getElementById(`presetColor-${i}`).style.backgroundColor = preset.colour;
-            }
-        }
+        renderPresets();
     </script>
 </body>
 </html>
