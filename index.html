@@ -86,6 +86,9 @@
             <div id="preset-0"></div>
             <div id="preset-1"></div>
             <div id="preset-2"></div>
+            <div id="preset-3"></div>
+            <div id="preset-4"></div>
+            <div id="preset-5"></div>
         </div>
     </div>
 
@@ -153,20 +156,21 @@
             document.getElementById('colorHex').textContent = e.target.value;
         });
 
-        // Build all three preset cards from localStorage — called on load and after every save
+        // Build all six preset cards from localStorage — called on load and after every save
         function renderPresets() {
-            for (let i = 0; i < 3; i++) {
+            for (let i = 0; i < 6; i++) {
                 const container = document.getElementById(`preset-${i}`);
                 const preset = JSON.parse(localStorage.getItem(`preset-${i}`));
                 if (preset) {
                     const isBlur = preset.type === 'blur';
+                    const name = preset.name ?? `Preset ${i + 1}`;
                     // Blur presets get a dark gradient swatch; color presets show their actual color
                     const swatchStyle = isBlur
                         ? 'background: linear-gradient(135deg, #1e293b 25%, #334155 50%, #1e293b 75%)'
                         : `background:${preset.colour}`;
-                    const swatchLabel = isBlur
-                        ? `<div class="text-xs text-gray-400">Blur</div>`
-                        : `<div class="text-xs text-gray-400 font-mono truncate">${preset.colour}</div>`;
+                    const detail = isBlur
+                        ? `${preset.width}×${preset.height} · blur`
+                        : `${preset.width}×${preset.height} · <span class="font-mono">${preset.colour}</span>`;
                     container.innerHTML = `
                         <div class="rounded-lg border border-gray-700 overflow-hidden">
                             <div class="h-8 cursor-pointer hover:opacity-80 transition-opacity flex items-center justify-center"
@@ -174,12 +178,15 @@
                                  onclick="loadPreset(${i})">
                                 ${isBlur ? '<span style="font-size:10px;color:#94a3b8;letter-spacing:0.05em">BLUR</span>' : ''}
                             </div>
-                            <div class="bg-gray-800 px-2 pt-1 pb-0.5 flex justify-between items-start">
-                                <div>
-                                    ${swatchLabel}
-                                    <div class="text-xs text-gray-500">${preset.width}×${preset.height}</div>
+                            <div class="bg-gray-800 px-2 pt-1 pb-1">
+                                <div class="flex justify-between items-center mb-0.5">
+                                    <span id="preset-name-${i}"
+                                          class="text-xs text-gray-200 font-medium truncate cursor-pointer hover:text-white"
+                                          onclick="startRename(${i})"
+                                          title="Click to rename">${name}</span>
+                                    <button onclick="savePreset(${i})" class="text-xs text-gray-500 hover:text-indigo-400 transition-colors ml-1 flex-shrink-0" title="Overwrite">↑</button>
                                 </div>
-                                <button onclick="savePreset(${i})" class="text-xs text-gray-500 hover:text-indigo-400 transition-colors ml-1 mt-0.5" title="Overwrite">↑</button>
+                                <div class="text-xs text-gray-500">${detail}</div>
                             </div>
                         </div>`;
                 } else {
@@ -195,13 +202,43 @@
             }
         }
 
-        // Snapshot the current settings into a preset slot and re-render the cards
+        // Replace the name span with a text input; commit on blur or Enter, cancel on Escape
+        function startRename(index) {
+            const span = document.getElementById(`preset-name-${index}`);
+            if (!span) return;
+            const input = document.createElement('input');
+            input.value = span.textContent;
+            input.className = 'text-xs text-white font-medium bg-transparent border-b border-indigo-500 outline-none w-full min-w-0';
+            span.replaceWith(input);
+            input.focus();
+            input.select();
+
+            function commit() {
+                const preset = JSON.parse(localStorage.getItem(`preset-${index}`));
+                if (preset) {
+                    preset.name = input.value.trim() || `Preset ${index + 1}`;
+                    localStorage.setItem(`preset-${index}`, JSON.stringify(preset));
+                }
+                renderPresets();
+            }
+
+            input.addEventListener('blur', commit);
+            input.addEventListener('keydown', e => {
+                if (e.key === 'Enter') input.blur();
+                if (e.key === 'Escape') renderPresets(); // discard changes
+            });
+        }
+
+        // Snapshot the current settings into a preset slot, preserving any existing name
         function savePreset(index) {
             const colour = document.getElementById('colorPicker').value;
             const opacity = document.getElementById('opacitySlider').value;
             const width = Number(document.getElementById('width').value);
             const height = Number(document.getElementById('height').value);
-            localStorage.setItem(`preset-${index}`, JSON.stringify({ colour, opacity, layer: selectedLayer, width, height, type: selectedType }));
+            // Keep the existing name if the slot already has one
+            const existing = JSON.parse(localStorage.getItem(`preset-${index}`));
+            const name = existing?.name ?? `Preset ${index + 1}`;
+            localStorage.setItem(`preset-${index}`, JSON.stringify({ name, colour, opacity, layer: selectedLayer, width, height, type: selectedType }));
             renderPresets();
         }
 
