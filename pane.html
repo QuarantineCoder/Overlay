@@ -2,7 +2,7 @@
 <html>
 <head>
     <style>
-        html, body { 
+        html, body {
             background: transparent !important;
             margin: 0;
             padding: 0;
@@ -11,29 +11,60 @@
             overflow: hidden;
         }
 
-        body{
-            -webkit-app-region: drag; 
+        body {
+            -webkit-app-region: drag;
         }
 
         #box {
-            width: 100vw; 
+            width: 100vw;
             height: 100vh;
             box-sizing: border-box;
+        }
+
+        #closeBtn {
+            position: fixed;
+            top: 6px;
+            right: 6px;
+            width: 22px;
+            height: 22px;
+            background: rgba(0, 0, 0, 0.5);
+            border: none;
+            border-radius: 50%;
+            color: #fff;
+            font-size: 15px;
+            line-height: 1;
+            cursor: pointer;
+            /* Must opt out of drag so clicks register instead of dragging the window */
+            -webkit-app-region: no-drag;
+            opacity: 0;
+            transition: opacity 0.15s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        body:hover #closeBtn {
+            opacity: 1;
+        }
+
+        #closeBtn:hover {
+            background: rgba(180, 40, 40, 0.8);
         }
     </style>
 </head>
 <body>
     <div id="box"></div>
+    <button id="closeBtn" onclick="window.close()">×</button>
     <script>
         const { ipcRenderer } = require('electron');
         ipcRenderer.on('init-pane', (event, config) => {
             const box = document.getElementById('box');
-            box.className = ''; 
+            box.className = '';
             box.style.backgroundColor = 'transparent'; // Start clean
 
             if (config.type === 'color') {
                 box.style.backgroundColor = config.value;
-            } 
+            }
         });
     </script>
 </body>
