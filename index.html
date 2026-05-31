@@ -131,7 +131,11 @@
                 setActive(document.getElementById('btn-type-blur'));
                 setInactive(document.getElementById('btn-type-color'));
             }
-            document.getElementById('colorRow').style.display = type === 'color' ? '' : 'none';
+            if (type === 'color') {
+                document.getElementById('colorRow').style.display = '';
+            } else {
+                document.getElementById('colorRow').style.display = 'none';
+            }
         }
 
         // Update the selected layer and swap button styles
@@ -165,18 +169,28 @@
                     const isBlur = preset.type === 'blur';
                     const name = preset.name ?? `Preset ${i + 1}`;
                     // Blur presets get a dark gradient swatch; color presets show their actual color
-                    const swatchStyle = isBlur
-                        ? 'background: linear-gradient(135deg, #1e293b 25%, #334155 50%, #1e293b 75%)'
-                        : `background:${preset.colour}`;
-                    const detail = isBlur
-                        ? `${preset.width}×${preset.height} · blur`
-                        : `${preset.width}×${preset.height} · <span class="font-mono">${preset.colour}</span>`;
+                    let swatchStyle;
+                    if (isBlur) {
+                        swatchStyle = 'background: linear-gradient(135deg, #1e293b 25%, #334155 50%, #1e293b 75%)';
+                    } else {
+                        swatchStyle = `background:${preset.colour}`;
+                    }
+                    let detail;
+                    if (isBlur) {
+                        detail = `${preset.width}×${preset.height} · blur`;
+                    } else {
+                        detail = `${preset.width}×${preset.height} · <span class="font-mono">${preset.colour}</span>`;
+                    }
+                    let blurLabel = '';
+                    if (isBlur) {
+                        blurLabel = '<span style="font-size:10px;color:#94a3b8;letter-spacing:0.05em">BLUR</span>';
+                    }
                     container.innerHTML = `
                         <div class="rounded-lg border border-gray-700 overflow-hidden">
                             <div class="h-8 cursor-pointer hover:opacity-80 transition-opacity flex items-center justify-center"
                                  style="${swatchStyle}"
                                  onclick="loadPreset(${i})">
-                                ${isBlur ? '<span style="font-size:10px;color:#94a3b8;letter-spacing:0.05em">BLUR</span>' : ''}
+                                ${blurLabel}
                             </div>
                             <div class="bg-gray-800 px-2 pt-1 pb-1">
                                 <div class="flex justify-between items-center mb-0.5">
@@ -262,9 +276,12 @@
             const opacity = document.getElementById('opacitySlider').value;
             const width = Number(document.getElementById('width').value);
             const height = Number(document.getElementById('height').value);
-            const config = selectedType === 'blur'
-                ? { type: 'blur', layer: selectedLayer, opacity, width, height }
-                : { type: 'color', value: document.getElementById('colorPicker').value, layer: selectedLayer, opacity, width, height };
+            let config;
+            if (selectedType === 'blur') {
+                config = { type: 'blur', layer: selectedLayer, opacity, width, height };
+            } else {
+                config = { type: 'color', value: document.getElementById('colorPicker').value, layer: selectedLayer, opacity, width, height };
+            }
             ipcRenderer.send('create-pane', config);
         }
 
