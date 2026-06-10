@@ -59,6 +59,7 @@
     <button id="duplicateBtn" title="Duplicate">⧉</button>
     <script>
         const { ipcRenderer } = require('electron');
+        const fs = require('fs');
 
         let paneConfig = null; // remembered so right-click can send an exact copy
 
@@ -70,6 +71,16 @@
 
             if (config.type === 'color') {
                 box.style.backgroundColor = config.value;
+            } else if (config.type === 'image' && config.src) {
+                // Read file via Node fs and use a base64 data URL — avoids all file:// URL security issues
+                const ext = config.src.split('.').pop().toLowerCase();
+                const mimeTypes = { jpg: 'image/jpeg', jpeg: 'image/jpeg', png: 'image/png', gif: 'image/gif', webp: 'image/webp', bmp: 'image/bmp' };
+                const mime = mimeTypes[ext] || 'image/jpeg';
+                const data = fs.readFileSync(config.src).toString('base64');
+                const img = document.createElement('img');
+                img.src = `data:${mime};base64,${data}`;
+                img.style.cssText = 'width:100%;height:100%;object-fit:fill;display:block;';
+                box.appendChild(img);
             }
         });
 
