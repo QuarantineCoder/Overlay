@@ -1,4 +1,4 @@
-const { app, BrowserWindow, Menu, ipcMain } = require('electron');
+const { app, BrowserWindow, Menu, ipcMain, dialog } = require('electron');
 
 // Creates the controller window where the user configures and spawns panes
 function createMainWindow() {
@@ -26,6 +26,7 @@ function createMainWindow() {
 const MATERIAL_MAP = {
     blur: 'acrylic',
     color: 'none',
+    image: 'none',
 };
 
 // Listens for a 'create-pane' message from index.html and opens a new pane window
@@ -78,6 +79,18 @@ ipcMain.on('duplicate-pane', (event, config) => {
     pane.webContents.on('did-finish-load', () => {
         pane.webContents.send('init-pane', config);
     });
+});
+
+// Opens a native file picker and returns the selected image path to the renderer
+ipcMain.handle('pick-image', async () => {
+    const result = await dialog.showOpenDialog({
+        properties: ['openFile'],
+        filters: [{ name: 'Images', extensions: ['jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp'] }],
+    });
+    if (!result.canceled && result.filePaths.length > 0) {
+        return result.filePaths[0];
+    }
+    return null;
 });
 
 app.whenReady().then(createMainWindow);

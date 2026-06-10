@@ -10,6 +10,7 @@ Overlay is a lightweight Windows desktop utility app that lets you place differe
 
 - **Color panes** — spawn a solid-color transparent window in any color
 - **Blur panes** — spawn a frosted glass / acrylic blur pane (Windows only)
+- **Image panes** — spawn a pane displaying a local image file, chosen via a native file picker
 - **Opacity control** — set transparency from 10% to 100%
 - **Layer control** — pin panes above everything or just above the desktop
 - **Custom size** — set width and height before spawning
@@ -46,14 +47,15 @@ npm start
 
 ## Usage
 
-1. **Select a type** — Color or Blur
+1. **Select a type** — Color, Blur, or Image
 2. **Pick a color** — shown when Color is selected
-3. **Set a layer** — Above Everything (always on top) or Above Desktop
-4. **Set size** — width and height in pixels
-5. **Set opacity** — drag the slider
-6. **Click Create Pane** — spawns the overlay window
-7. **Hover a pane** — reveals ⧉ (duplicate) and × (close) buttons in the top-right corner
-8. **Presets** — click ↑ on any slot to save current settings, click the swatch to load, click the name to rename
+3. **Choose an image** — shown when Image is selected; opens a native file picker (jpg, png, gif, webp, bmp)
+4. **Set a layer** — Above Everything (always on top) or Above Desktop
+5. **Set size** — width and height in pixels
+6. **Set opacity** — drag the slider
+7. **Click Create Pane** — spawns the overlay window
+8. **Hover a pane** — reveals ⧉ (duplicate) and × (close) buttons in the top-right corner
+9. **Presets** — click ↑ on any slot to save current settings, click the swatch to load, click the name to rename
 
 ---
 
@@ -81,5 +83,6 @@ Overlay/
 ## Notes
 
 - Blur panes use the Windows `backgroundMaterial: 'acrylic'` API and only work on Windows 10/11
+- Image panes read the file via Node's `fs` module and render it as a base64 data URL, avoiding `file://` security restrictions in Electron
 - Panes persist on screen if the controller window is closed
 - Presets are stored locally in the app's `localStorage` and survive restarts

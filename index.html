@@ -23,6 +23,10 @@
                 class="flex-1 py-2 text-sm font-medium rounded-lg border border-gray-700 text-gray-400 hover:border-gray-600 hover:text-gray-200 transition-all duration-150 cursor-pointer">
                 Blur
             </button>
+            <button id="btn-type-image" onclick="setType('image')"
+                class="flex-1 py-2 text-sm font-medium rounded-lg border border-gray-700 text-gray-400 hover:border-gray-600 hover:text-gray-200 transition-all duration-150 cursor-pointer">
+                Image
+            </button>
         </div>
     </div>
 
@@ -33,6 +37,18 @@
             <input type="color" id="colorPicker" value="#6366f1"
                 class="h-10 w-16 rounded-lg cursor-pointer border border-gray-700 bg-gray-800 p-1">
             <span id="colorHex" class="text-sm text-gray-400 font-mono">#6366f1</span>
+        </div>
+    </div>
+
+    <!-- Image -->
+    <div id="imageRow" class="mb-4" style="display:none">
+        <span class="block text-xs font-semibold uppercase tracking-wider text-gray-500 mb-2">Image</span>
+        <div class="flex items-center gap-3">
+            <button onclick="pickImage()"
+                class="px-3 py-2 text-sm bg-gray-800 border border-gray-700 rounded-lg text-gray-300 hover:border-indigo-500 transition-colors cursor-pointer">
+                Choose File
+            </button>
+            <span id="imageFilename" class="text-sm text-gray-400 truncate">No image selected</span>
         </div>
     </div>
 
@@ -105,6 +121,7 @@
         // Track currently selected options — used when spawning a pane or saving a preset
         let selectedType = 'color';
         let selectedLayer = 'top';
+        let selectedImagePath = '';
 
         // Tailwind classes applied to toggle buttons depending on their active/inactive state
         const activeClasses = ['bg-indigo-600', 'border-indigo-500', 'text-white'];
@@ -119,22 +136,24 @@
             btn.classList.add(...inactiveClasses);
         }
 
-        // Update the selected type, swap button styles, and show/hide the color picker row
+        // Update the selected type, swap button styles, and show/hide the relevant config row
         function setType(type) {
             selectedType = type;
-            setActive(document.getElementById('btn-type-color'));
-            setActive(document.getElementById('btn-type-blur'));
-            if (type === 'color') {
-                setActive(document.getElementById('btn-type-color'));
-                setInactive(document.getElementById('btn-type-blur'));
-            } else {
-                setActive(document.getElementById('btn-type-blur'));
-                setInactive(document.getElementById('btn-type-color'));
-            }
+            // Deactivate all type buttons then activate the selected one
+            setInactive(document.getElementById('btn-type-color'));
+            setInactive(document.getElementById('btn-type-blur'));
+            setInactive(document.getElementById('btn-type-image'));
+            setActive(document.getElementById('btn-type-' + type));
+            // Show only the row that matches the selected type
             if (type === 'color') {
                 document.getElementById('colorRow').style.display = '';
+                document.getElementById('imageRow').style.display = 'none';
+            } else if (type === 'image') {
+                document.getElementById('colorRow').style.display = 'none';
+                document.getElementById('imageRow').style.display = '';
             } else {
                 document.getElementById('colorRow').style.display = 'none';
+                document.getElementById('imageRow').style.display = 'none';
             }
         }
 
@@ -160,6 +179,15 @@
             document.getElementById('colorHex').textContent = e.target.value;
         });
 
+        // Open a native file dialog via main process and store the returned absolute path
+        async function pickImage() {
+            const filePath = await ipcRenderer.invoke('pick-image');
+            if (filePath) {
+                selectedImagePath = filePath;
+                document.getElementById('imageFilename').textContent = filePath.split('\\').pop().split('/').pop();
+            }
+        }
+
         // Build all six preset cards from localStorage — called on load and after every save
         function renderPresets() {
             for (let i = 0; i < 6; i++) {
@@ -167,17 +195,24 @@
                 const preset = JSON.parse(localStorage.getItem(`preset-${i}`));
                 if (preset) {
                     const isBlur = preset.type === 'blur';
+                    const isImage = preset.type === 'image';
                     const name = preset.name ?? `Preset ${i + 1}`;
-                    // Blur presets get a dark gradient swatch; color presets show their actual color
                     let swatchStyle;
                     if (isBlur) {
                         swatchStyle = 'background: linear-gradient(135deg, #1e293b 25%, #334155 50%, #1e293b 75%)';
+                    } else if (isImage) {
+                        // Show the actual image as the swatch thumbnail
+                        const fileUrl = 'file:///' + preset.src.replace(/\\/g, '/');
+                        swatchStyle = `background-image: url("${fileUrl}"); background-size: cover; background-position: center`;
                     } else {
                         swatchStyle = `background:${preset.colour}`;
                     }
                     let detail;
                     if (isBlur) {
                         detail = `${preset.width}×${preset.height} · blur`;
+                    } else if (isImage) {
+                        const filename = preset.src.split('\\').pop().split('/').pop();
+                        detail = `${preset.width}×${preset.height} · ${filename}`;
                     } else {
                         detail = `${preset.width}×${preset.height} · <span class="font-mono">${preset.colour}</span>`;
                     }
@@ -252,7 +287,8 @@
             // Keep the existing name if the slot already has one
             const existing = JSON.parse(localStorage.getItem(`preset-${index}`));
             const name = existing?.name ?? `Preset ${index + 1}`;
-            localStorage.setItem(`preset-${index}`, JSON.stringify({ name, colour, opacity, layer: selectedLayer, width, height, type: selectedType }));
+            const src = selectedType === 'image' ? selectedImagePath : '';
+            localStorage.setItem(`preset-${index}`, JSON.stringify({ name, colour, src, opacity, layer: selectedLayer, width, height, type: selectedType }));
             renderPresets();
         }
 
@@ -269,6 +305,11 @@
             setLayer(preset.layer);
             // Fall back to 'color' for any presets saved before type tracking was added
             setType(preset.type ?? 'color');
+            if (preset.type === 'image') {
+                selectedImagePath = preset.src;
+                const filename = preset.src.split('\\').pop().split('/').pop();
+                document.getElementById('imageFilename').textContent = filename;
+            }
         }
 
         // Read all current settings, build the config, and tell main.js to open a new pane window
@@ -279,6 +320,8 @@
             let config;
             if (selectedType === 'blur') {
                 config = { type: 'blur', layer: selectedLayer, opacity, width, height };
+            } else if (selectedType === 'image') {
+                config = { type: 'image', src: selectedImagePath, layer: selectedLayer, opacity, width, height };
             } else {
                 config = { type: 'color', value: document.getElementById('colorPicker').value, layer: selectedLayer, opacity, width, height };
             }
